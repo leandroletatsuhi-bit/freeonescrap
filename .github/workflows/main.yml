@@ -1,14 +1,30 @@
-name: FreeOnes Full Scrape (100% Dados)
+name: FreeOnes Scraper Completo (100% Dados)
 
 on:
-  workflow_dispatch:  # Apenas manual, para evitar sobrecarga diária
+  workflow_dispatch:  # Permite rodar manualmente com inputs
+    inputs:
+      max_pages:
+        description: 'Número máximo de páginas para raspar (use 500 para ~100%)'
+        required: true
+        default: '~100%'
+      start_id_bios:
+        description: 'ID inicial para bios (1 para todos os novos)'
+        required: true
+        default: '1'
+      num_bios:
+        description: 'Número de bios para coletar (use 12000 para todos)'
+        required: true
+        default: '999999999'
+  schedule:
+    - cron: '0 2 * * *'  # Diário às 2h UTC (23h BRT), mas só para manutenção; use dispatch para full
 
 permissions:
-  contents: write  # Permite push automático
+  contents: write  # Para push automático
 
 jobs:
-  full-scrape:
+  scrape-full:
     runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6 horas max, para jobs longos
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,27 +38,49 @@ jobs:
         run: |
           pip install requests beautifulsoup4 tqdm
 
-      - name: Rodar coleta completa de URLs (1-babes.py - 416 páginas)
+      - name: Log inputs
+        run: |
+          echo "Páginas a raspar: ${{ github.event.inputs.max_pages || '500' }}"
+          echo "Bios: start_id=${{ github.event.inputs.start_id_bios || '1' }}, num=${{ github.event.inputs.num_bios || '12000' }}"
+
+      - name: Rodar coleta de URLs (1-babes.py) - Todas as páginas
         run: |
           python 1-babes.py <<EOF
-          416
+          ${{ github.event.inputs.max_pages || '~100%' }}
           EOF
 
-      - name: Rodar coleta completa de bios (2-urls.py - Todas as atrizes)
+      - name: Rodar coleta de bios (2-urls.py) - Todos os perfis
         run: |
           python 2-urls.py <<EOF
-          1
-          62705
+          ${{ github.event.inputs.start_id_bios || '1' }}
+          ${{ github.event.inputs.num_bios || '999999999' }}
           EOF
 
-      # Opcional: Incluir 3-atrizes.py se ele for necessário para consolidação
-      # - name: Rodar consolidação (3-atrizes.py)
-      #   run: python 3-atrizes.py
+      - name: Rodar processamento final (3-atrizes.py)
+        run: |
+          if [ -f "3-atrizes.py" ]; then
+            python 3-atrizes.py
+          else
+            echo "3-atrizes.py não encontrado, pulando."
+          fi
 
-      - name: Commit e push dos dados completos
+      - name: Verificar erros (5-erros.py se existir)
+        run: |
+          if [ -f "5-erros.py" ]; then
+            python 5-erros.py
+          else
+            echo "5-erros.py não encontrado, pulando."
+          fi
+
+      - name: Commit e push dos novos dados
         run: |
           git config --global user.name "Leandro Don"
           git config --global user.email "leandroletatsuhi@gmail.com"
           git add resultados/ atrizes/
-          git commit -m "Coleta completa (100%) - $(date +'%Y-%m-%d %H:%M')" || echo "Nada para commitar"
-          git push
+          if git diff --staged --quiet; then
+            echo "Nenhuma mudança para commitar."
+          else
+            git commit -m "Coleta completa: $(date +'%Y-%m-%d %H:%M') - Páginas: ${{ github.event.inputs.max_pages || '500' }}, Bios: ${{ github.event.inputs.num_bios || '12000' }}"
+            git push
+            echo "Commit e push realizados com sucesso!"
+          fi
