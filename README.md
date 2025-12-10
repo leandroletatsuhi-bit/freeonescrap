@@ -1,9 +1,8 @@
 # FreeOnes Scraper: Banco de Dados Automático de Perfis Adultos
 
-Este projeto é uma ferramenta poderosa e automatizada para coletar dados de perfis de atrizes do site FreeOnes.com. Ele raspa listas de "babes" (páginas de ranking), extrai URLs de bios e depois puxa detalhes ricos: medidas, etnia, altura, nacionalidade, links para OnlyFans/Instagram/Twitter e mais. Tudo salvo em JSONs limpos, atualizados diariamente via GitHub Actions.
+Esse projeto foi feito apenas para estudos, sem aplicação definida, use por sua própria responsabilidade.
 
-**Por que isso importa?**  
-Em um mundo de conteúdo adulto bilionário, dados são ouro. Use para análise de tendências, marketing afiliado, funis de OnlyFans ou até venda de leads premium. Mas lembre: respeite leis (GDPR, TOS do site) — anonimze e agregue para ética.
+Este projeto é uma ferramenta poderosa e automatizada para coletar dados de perfis de atrizes do site FreeOnes.com. Ele raspa listas de "babes" (páginas de ranking), extrai URLs de bios e depois puxa detalhes ricos: medidas, etnia, altura, nacionalidade, links para OnlyFans/Instagram/Twitter e mais. Tudo salvo em JSONs limpos, atualizados diariamente via GitHub Actions.
 
 ## Funcionalidades Principais
 - **Coleta Inicial (1-babes.py)**: Raspa até N páginas de ranking (24 perfis/página), extrai nomes, slugs e URLs de bio/feed.
@@ -28,3 +27,4 @@ Exemplo de output em bio:
     "instagram": "https://instagram.com/willowryder"
   }
 }
+
