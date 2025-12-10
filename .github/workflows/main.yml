@@ -1,15 +1,13 @@
-name: FreeOnes Scraper Automático
+name: FreeOnes Full Scrape (100% Dados)
 
 on:
-  workflow_dispatch:      # Permite rodar manualmente
-  schedule:
-    - cron: '0 4 * * *'   # Todo dia às 4h da manhã UTC (1h da manhã horário de Brasília)
+  workflow_dispatch:  # Apenas manual, para evitar sobrecarga diária
 
 permissions:
-  contents: write         # LIBERA O PUSH - isso é o segredo
+  contents: write  # Permite push automático
 
 jobs:
-  scrape-and-update:
+  full-scrape:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -24,23 +22,27 @@ jobs:
         run: |
           pip install requests beautifulsoup4 tqdm
 
-      - name: Rodar coleta de URLs (1-babes.py)
+      - name: Rodar coleta completa de URLs (1-babes.py - 416 páginas)
         run: |
           python 1-babes.py <<EOF
-          50
+          416
           EOF
 
-      - name: Rodar coleta de bios (2-urls.py)
+      - name: Rodar coleta completa de bios (2-urls.py - Todas as atrizes)
         run: |
           python 2-urls.py <<EOF
           1
-          0
+          62705
           EOF
 
-      - name: Commit e push dos novos dados
+      # Opcional: Incluir 3-atrizes.py se ele for necessário para consolidação
+      # - name: Rodar consolidação (3-atrizes.py)
+      #   run: python 3-atrizes.py
+
+      - name: Commit e push dos dados completos
         run: |
           git config --global user.name "Leandro Don"
           git config --global user.email "leandroletatsuhi@gmail.com"
           git add resultados/ atrizes/
-          git commit -m "Atualização automática $(date +'%Y-%m-%d %H:%M')" || echo "Nada para commitar"
+          git commit -m "Coleta completa (100%) - $(date +'%Y-%m-%d %H:%M')" || echo "Nada para commitar"
           git push
