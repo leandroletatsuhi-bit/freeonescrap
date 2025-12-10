@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: '0 4 * * *'   # Todo dia às 4h da manhã UTC (1h da manhã horário de Brasília)
 
+permissions:
+  contents: write         # LIBERA O PUSH - isso é o segredo
+
 jobs:
   scrape-and-update:
     runs-on: ubuntu-latest
