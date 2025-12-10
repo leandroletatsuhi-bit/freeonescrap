@@ -1,0 +1,43 @@
+name: FreeOnes Scraper Automático
+
+on:
+  workflow_dispatch:      # Permite rodar manualmente
+  schedule:
+    - cron: '0 4 * * *'   # Todo dia às 4h da manhã UTC (1h da manhã horário de Brasília)
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4 tqdm
+
+      - name: Rodar coleta de URLs (1-babes.py)
+        run: |
+          python 1-babes.py <<EOF
+          50
+          EOF
+
+      - name: Rodar coleta de bios (2-urls.py)
+        run: |
+          python 2-urls.py <<EOF
+          1
+          0
+          EOF
+
+      - name: Commit e push dos novos dados
+        run: |
+          git config --global user.name "Leandro Don"
+          git config --global user.email "leandroletatsuhi@gmail.com"
+          git add resultados/ atrizes/
+          git commit -m "Atualização automática $(date +'%Y-%m-%d %H:%M')" || echo "Nada para commitar"
+          git push
